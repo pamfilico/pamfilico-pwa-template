@@ -29,13 +29,35 @@ Full README: `packages/pamfilico-pwa-template/README.md`
 
 ## Workflow
 
-### 1. Install
+### 1. Install (real npm dependency — never a path reference)
 
 ```bash
 npm install git+https://github.com/pamfilico/pamfilico-pwa-template.git
 ```
 
+Commit the updated `package-lock.json`.
+
+**`package.json` must look like:**
+
+```json
+"@pamfilico/pwa-template": "git+https://github.com/pamfilico/pamfilico-pwa-template.git"
+```
+
+**Never do this:**
+
+```json
+"@pamfilico/pwa-template": "file:../../../codespec/packages/pamfilico-pwa-template"
+```
+
+That creates a **host symlink**, not an installed package. It breaks immediately in Docker dev stacks that bind-mount `./frontend:/app` and use an anonymous `/app/node_modules` volume — the symlink target does not exist inside the container → `Module not found: Can't resolve '@pamfilico/pwa-template/react'`.
+
 Ensure peers: `@mui/material`, `@mui/icons-material`, `next-intl`, `@emotion/react`, `@emotion/styled`.
+
+Add to `next.config.ts`:
+
+```ts
+transpilePackages: ["@pamfilico/pwa-template"],
+```
 
 ### 2. Copy templates
 
@@ -91,11 +113,15 @@ import { PWAInstallButton } from "@pamfilico/pwa-template/react";
 
 Optional iOS banner: `<InlineInstallNag />`
 
-### 6. i18n
+### 6. i18n (merge into app messages — do not import from package)
 
-Merge `@pamfilico/pwa-template/i18n/pwa.en.json` and `pwa.el.json` into app `messages/`.
+Copy keys from `node_modules/@pamfilico/pwa-template/i18n/pwa.en.json` and `pwa.el.json` into the app's `messages/en.json` / `messages/el.json` under a `"PWA"` namespace.
 
 Required namespace: `PWA.*` plus `buttons.cancel` for dialog dismiss.
+
+**In app components, use `useTranslations("PWA")` only.** Do **not** import `@pamfilico/pwa-template/i18n/...` in production app code — that pattern is for the package's own test-frontend demo only.
+
+Do **not** add `COPY i18n/` to app Dockerfiles. CarFast / music_sets / language_learning keep strings in `messages/*.json`.
 
 ### 7. Layout meta tags
 
@@ -121,12 +147,50 @@ import { ShareMenu, PwaShareButton } from "@pamfilico/pwa-template/react";
 
 ### 10. CI / Docker
 
+**Production Dockerfile** (`node:20-alpine`):
+
 ```dockerfile
+RUN apk add --no-cache git   # required for git+https npm dependencies
+
 ARG NEXT_PUBLIC_APP_VERSION
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION
+
+COPY package*.json ./
+RUN npm ci                     # lockfile must resolve @pamfilico/pwa-template from GitHub
+COPY . .
+RUN npm run build
 ```
 
 GitLab CI: `--build-arg NEXT_PUBLIC_APP_VERSION="$CI_COMMIT_SHA"`
+
+**Docker Compose dev** (bind-mount + anonymous `node_modules` volume — language_learning pattern):
+
+```yaml
+volumes:
+  - ./frontend:/app
+  - /app/node_modules          # persists across container recreates
+  - /app/.next
+```
+
+Pitfalls observed in **language_learning** integration (May 2026):
+
+| Mistake | Symptom | Fix |
+|---------|---------|-----|
+| `file:../../../codespec/...` in `package.json` | `Module not found` for `/react`, `/next` in container | Use `git+https://github.com/pamfilico/pamfilico-pwa-template.git`; run `npm install`; commit lockfile |
+| Rebuilt image but old `node_modules` volume | Package missing in running container even after `--build` | `docker rm -v languagefast_frontend_local` then `./upbuild.sh --languagefast` (recreates fresh volume from image) |
+| Alpine image without `git` | `npm install` / `npm ci` fails silently or omits git dependency | `RUN apk add --no-cache git` before `npm ci` |
+| Importing `@pamfilico/pwa-template/i18n/*` in app | Wrong pattern; user rejected | Merge keys into `messages/*.json` |
+| `COPY i18n/` in Dockerfile | Not used in CarFast/music_sets | Remove; strings live in app messages |
+
+After changing `package.json` dependencies in a compose dev stack, **rebuilding the image is not enough** — remove the container's anonymous `/app/node_modules` volume or the stale volume keeps the old (broken) install.
+
+```bash
+docker compose -f docker-compose.dev-languagefast.yml stop languagefast-frontend
+docker rm -v languagefast_frontend_local
+./upbuild.sh --languagefast
+```
+
+See [docs/docker-ci.md](./docs/docker-ci.md) for full Docker/CI notes.
 
 ## Verification checklist
 
@@ -141,10 +205,15 @@ GitLab CI: `--build-arg NEXT_PUBLIC_APP_VERSION="$CI_COMMIT_SHA"`
 
 ## Anti-patterns
 
+- Do **not** use `file:` path references to codespec or monorepo siblings — install from GitHub
+- Do **not** assume `docker compose up --build` refreshes `/app/node_modules` when an anonymous volume exists
+- Do **not** import `@pamfilico/pwa-template/i18n/*` in app code — merge into `messages/*.json`
+- Do **not** `COPY i18n/` in app Dockerfiles
 - Do **not** use `next-pwa` or Workbox caching (network-only default)
 - Do **not** auto-open install modal after timeout
 - Do **not** duplicate `beforeinstallprompt` listeners outside provider
 - Do **not** bake `NEXT_PUBLIC_*` URLs without rebuild when they change
+- Do **not** copy inline `PwaInstallProvider` / `PWAInstallButton` into apps when the package exists
 
 ## Reference implementations
 

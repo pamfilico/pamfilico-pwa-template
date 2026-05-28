@@ -8,7 +8,15 @@ Reusable Progressive Web App kit for Pamfilico Next.js apps. Consolidates patter
 npm install git+https://github.com/pamfilico/pamfilico-pwa-template.git
 ```
 
+**Install it as a real dependency.** Do not use `file:../../../codespec/...` — that is a host symlink, not an npm install, and breaks in Docker dev stacks.
+
 Peer dependencies: `react`, `next`, `@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`, `next-intl`.
+
+Add to `next.config.ts`:
+
+```ts
+transpilePackages: ["@pamfilico/pwa-template"],
+```
 
 ## Quick start (5 minutes)
 
@@ -77,7 +85,56 @@ import { PWAInstallButton } from "@pamfilico/pwa-template/react";
 
 ### 6. i18n
 
-Merge `node_modules/@pamfilico/pwa-template/i18n/pwa.en.json` into `messages/en.json` (and `pwa.el.json` for Greek). Replace `{{appName}}` in strings if using ICU-style placeholders manually.
+Merge keys from `node_modules/@pamfilico/pwa-template/i18n/pwa.en.json` into `messages/en.json` (and `pwa.el.json` for Greek). Replace `{{appName}}` in strings if using ICU-style placeholders manually.
+
+**Do not** import `@pamfilico/pwa-template/i18n/*` in app components — use `useTranslations("PWA")` with merged app messages (CarFast / music_sets / language_learning pattern).
+
+---
+
+## Docker dev & common mistakes
+
+Real-world failures from the **language_learning** adoption (May 2026):
+
+### 1. `file:` path instead of git install
+
+```json
+// WRONG — symlink to host codespec, missing in container
+"@pamfilico/pwa-template": "file:../../../codespec/packages/pamfilico-pwa-template"
+
+// CORRECT
+"@pamfilico/pwa-template": "git+https://github.com/pamfilico/pamfilico-pwa-template.git"
+```
+
+Symptom: `Module not found: Can't resolve '@pamfilico/pwa-template/react'` and `/next`.
+
+### 2. Stale anonymous `node_modules` volume
+
+Compose dev stacks often use:
+
+```yaml
+volumes:
+  - ./frontend:/app
+  - /app/node_modules
+```
+
+Rebuilding the image does **not** replace an existing anonymous volume. After fixing `package.json`, remove the old volume:
+
+```bash
+docker rm -v languagefast_frontend_local
+./upbuild.sh --languagefast
+```
+
+### 3. Alpine Dockerfiles need `git`
+
+```dockerfile
+RUN apk add --no-cache git
+```
+
+Required before `npm ci` / `npm install` when the dependency comes from `git+https://...`.
+
+### 4. i18n belongs in app `messages/`, not Docker `COPY i18n/`
+
+Do not copy package `i18n/` into Docker images. Merge translation keys into the app's `messages/en.json` / `messages/el.json`.
 
 ---
 
