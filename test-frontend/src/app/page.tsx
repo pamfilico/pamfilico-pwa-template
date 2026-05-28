@@ -9,7 +9,7 @@ import {
   ShareMenu,
   ServiceWorkerRegistrar,
 } from "@pamfilico/pwa-template/react";
-import messages from "@pamfilico/pwa-template/i18n/pwa.en.json";
+import messages from "../messages/en.json";
 
 const theme = createTheme();
 

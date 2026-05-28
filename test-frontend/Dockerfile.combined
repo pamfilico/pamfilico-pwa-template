@@ -3,7 +3,6 @@ FROM node:20-slim AS pkg-builder
 WORKDIR /pkg
 COPY package.json tsconfig.json ./
 COPY src/ src/
-COPY i18n/ i18n/
 RUN npm install && npm run build
 
 FROM node:20-slim
@@ -20,7 +19,6 @@ COPY test-frontend/ .
 RUN mkdir -p node_modules/@pamfilico/pwa-template
 COPY --from=pkg-builder /pkg/dist/ node_modules/@pamfilico/pwa-template/dist/
 COPY --from=pkg-builder /pkg/package.json node_modules/@pamfilico/pwa-template/package.json
-COPY --from=pkg-builder /pkg/i18n/ node_modules/@pamfilico/pwa-template/i18n/
 
 RUN npm run build
 
