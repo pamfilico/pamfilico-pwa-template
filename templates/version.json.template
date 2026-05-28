@@ -1,0 +1,6 @@
+{
+  "version": "{{APP_VERSION}}",
+  "timestamp": "{{TIMESTAMP}}",
+  "commit": "{{COMMIT}}",
+  "branch": "{{BRANCH}}"
+}

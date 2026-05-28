@@ -1,0 +1,89 @@
+{
+  "name": "@pamfilico/pwa-template",
+  "version": "0.1.0",
+  "description": "Reusable PWA kit for Next.js — install UI, service worker templates, share target scaffolding, and outbound share",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
+    "./next": {
+      "types": "./dist/next/index.d.ts",
+      "import": "./dist/next/index.js",
+      "default": "./dist/next/index.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.js",
+      "default": "./dist/hooks/index.js"
+    },
+    "./lib": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js",
+      "default": "./dist/lib/index.js"
+    },
+    "./i18n/*": "./i18n/*",
+    "./templates/*": "./templates/*"
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "i18n/",
+    "docs/",
+    "examples/",
+    "README.md",
+    "SKILL.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "test": "./run-tests.sh"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-dom": ">=19",
+    "next": ">=14",
+    "@mui/material": ">=5",
+    "@mui/icons-material": ">=5",
+    "@emotion/react": ">=11",
+    "@emotion/styled": ">=11",
+    "next-intl": ">=3"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@types/react": "^19.0.0",
+    "@types/node": "^22.0.0",
+    "next": "^16.0.0",
+    "@mui/material": "^7.3.4",
+    "@mui/icons-material": "^7.3.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "next-intl": "^4.0.0"
+  },
+  "author": "Pamfilico",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pamfilico/pamfilico-pwa-template.git"
+  },
+  "keywords": [
+    "pwa",
+    "nextjs",
+    "service-worker",
+    "install-prompt",
+    "share-target",
+    "mui"
+  ]
+}

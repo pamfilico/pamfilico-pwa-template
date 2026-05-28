@@ -1,0 +1,19 @@
+{
+  "PWA": {
+    "gotIt": "Got it",
+    "installApp": "Install app",
+    "addToHomeScreen": "Add to Home Screen on iOS",
+    "chooseAddToHomeScreen": "3) Choose \"Add to Home Screen\".",
+    "installInstructions": "To add {{appName}} to your home screen:",
+    "installAppDescription": "Install {{appName}} for quick access and an app-like experience.",
+    "tapShareButton": "1) Tap the share button",
+    "scrollDown": "2) Scroll down and tap \"Add to Home Screen\"",
+    "inlineNag": "Install this app: in Safari tap Share, then \"Add to Home Screen\".",
+    "share": "Share",
+    "shareMenu": "Share menu",
+    "copyLink": "Copy link",
+    "linkCopied": "Link copied to clipboard",
+    "shareUnsupported": "Sharing is not supported on this device",
+    "shareFailed": "Could not share — try copying the link instead"
+  }
+}

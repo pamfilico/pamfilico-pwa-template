@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tsbuildinfo
+test-frontend/.next/
+test-frontend/node_modules/
+tests/node_modules/
+.playwright/

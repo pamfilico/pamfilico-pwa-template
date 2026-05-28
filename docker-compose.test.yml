@@ -1,0 +1,28 @@
+services:
+  nextjs:
+    build:
+      context: .
+      dockerfile: test-frontend/Dockerfile.combined
+    ports:
+      - "3100:3099"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3099"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.52.0-noble
+    depends_on:
+      nextjs:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - ./test-frontend/src/e2e:/app/src/e2e
+      - ./test-frontend/playwright.config.ts:/app/playwright.config.ts
+    environment:
+      - BASE_URL=http://nextjs:3099
+    command: >
+      bash -c "npm init -y > /dev/null 2>&1 &&
+               npm install @playwright/test@1.52.0 > /dev/null 2>&1 &&
+               npx playwright test"
